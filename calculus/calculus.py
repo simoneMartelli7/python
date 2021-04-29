@@ -122,7 +122,7 @@ class sigma:
                 return (diff(self.s, x), -1, diff(self.s, z))
 #scalar function
 class function:
-    def __init__(self, f=1, n=1, var=(x, y)):
+    def __init__(self, f=1, n=1, var=(x)):
         self.f=f
         self.n=n
         self.var=var
