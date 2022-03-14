@@ -62,7 +62,6 @@ class sets():
 
 
 
-
 ### functions are defined as an object with the following attributes:
         # f: the function
         # n: the number of variables
@@ -102,7 +101,7 @@ class function():
         if self.n == 3:
             return vector(3, (self.der(self.f, self.var[0]), self.der(self.f, self.var[1]), self.der(self.f, self.var[2])))
         else:
-            print('ERROR: wrong dimensions, all functions must have at most 3 dimensions')
+            print('ERROR: wrong dimensions, all functions must have at most 3 dimensions, for one-dimensional functions as y = f(x) use f.der(self, var)')
             return -2
 
     ### simply prints the function (note that writing print(function()) would return blah.blah object at 0x123456789
@@ -167,70 +166,19 @@ class function():
             print('ERROR: dimansional error')
             return -1
     def s_integral(self, s):
-        pass
+        f1 = self.eval(s.sigmap())
+        n = norm(s.n())
+        fi = function(simplify(f1.f * n), 2)
+        return fi.integral(s.i)
     def max_min(self, x0):
         pass
-        # TODO: need to find a more elegant algorithm
+        # TDO: need to find a more elegant algorithm; I'm not implementing it now
 
 ### vectorial fields are defined as vecotor objects with the following attributes:
         # f: a tuple of function objects
         # n: the number of dimensions
 
-class vector():
-    def __init__(self, n = 3, f = (function(), function(), function()), var = (x, y, z)):
-        self.n = n
-        self.f = f
-        self.var = var
-
-    ### Returns the tuple as a vector of the appropriate dimension by appending to an empty
-    ### list and then converting it in a tuple and returning
-    def vec(self):
-        vec_l = []
-        for i in range(self.n):
-            vec_l.append(simplify(self.f[i].f))
-        return tuple(vec_l)
-    ### print the vector, same as function class
-    def prnt(self):
-        print(self.vec())
-        return 0
-
-    ### returns the divergence of the vector
-    def div(self):
-        f = 0
-        for i in range(self.n):
-            f = f + self.f[i].der(self.var[i]).f
-        return function(simplify(f), self.n)
-
-    ### returns the curl of the vector field
-    def curl(self):
-        if self.n != 3:
-            print('ERROR: curl operation is only applicable to R^3')
-            return -2
-            ### here returns -2 instead of -1 because while formally curl is indeed
-            ### an operation only of R^3 in less formal context could be applicabile
-            ### to R^2 vectors, I may implement it later
-        else:
-            f1 = self.f[2].der(y) - self.f[1].der(z)
-            f2 = self.f[0].der(z) - self.f[2].der(x)
-            f3 = self.f[1].der(x) - self.f[0].der(y)
-            return vector(self.n, f = (f1.sim(), f2.sim(), f3.sim()))
-
-    def gauss(self):
-        pass
-    def stokes(self):
-        pass
-    def flux(self):
-        pass
-    def p_integral(self):
-        pass
-    def evl(self, x0):
-        pass
-
-
-### surfaces are sigma objects with the following attributes:
-        # t: is the third variable (the surface is equivalent to z = g(x, y))
-        # s: function g(x, y) to be parametrized
-        # a: indicates wheter of not n scalar t is positive or negative
+# defines a parametrized surface
 class sigma():
     def __init__(self, t = z, g = function(), i = sets(), a = '+'):
         self.t = t
@@ -263,17 +211,74 @@ class sigma():
             print('ERROR: input error, please check that you\'re using the correct sintax')
             return -3
 
-# TODO: complete rewrite of the code
+class vector():
+    def __init__(self, n = 3, f = (function(), function(), function()), var = (x, y, z)):
+        self.n = n
+        self.f = f
+        self.var = var
+
+    ### Returns the tuple as a vector of the appropriate dimension by appending to an empty
+    ### list and then converting it in a tuple and returning
+    def vec(self):
+        vec_l = []
+        for i in range(self.n):
+            vec_l.append(simplify(self.f[i].f))
+        return tuple(vec_l)
+    ### print the vector, same as function class
+    def prnt(self):
+        print(self.vec())
+        return 0
+
+    ### returns the divergence of the vector
+    def div(self):
+        f = 0
+        for i in range(self.n):
+            f = f + self.f[i].der(self.var[i]).f
+        return function(simplify(f), self.n)
+
+    ### returns the curl of the vector field
+    def curl(self):
+        if self.n != 3:
+            print('ERROR: curl operation is only applicable to R^3')
+            return -2
+            ### here returns -2 instead of -1 because while formally curl is indeed
+            ### an operation only of R^3 in a less formal context could be applicabile
+            ### to R^2 vectors, I may implement it later
+        else:
+            f1 = self.f[2].der(y) - self.f[1].der(z)
+            f2 = self.f[0].der(z) - self.f[2].der(x)
+            f3 = self.f[1].der(x) - self.f[0].der(y)
+            return vector(self.n, f = (f1.sim(), f2.sim(), f3.sim()))
+
+    def gauss(self, s):
+        return self.div().integral(s)
+    def stokes(self, s):
+        r = self.curl()
+        return r.flux(s)
+    def flux(self, s):
+        F = self.eval(s.sigmap()).vec()
+        n = s.n()
+        d = dot(F, n)
+        f = function(d, 2)
+        return f.integral(s.i)
+    def p_integral(self, gamma):
+        F = self.eval(gamma.vec())
+        g = gamma.der().vec()
+        fi = function(dot(F.vec(), g))
+        return fi.integral(gamma.dom)
+    def evl(self, x0):
+        return vector(self.f1.eval(x0), self.f2.eval(x0), self.f3.eval(x0), self.n, self.dom)
+
+
+### surfaces are sigma objects with the following attributes:
+        # t: is the third variable (the surface is equivalent to z = g(x, y))
+        # s: function g(x, y) to be parametrized
+        # a: indicates wheter of not n scalar t is positive or negative
+
+
 # TODO: need to implement plotting feature
-# TODO: implement a function that gives back a vector object from a tuple
 
-f = function(2*x**2*y + z**3, n = 3, var = (x, y, z))
-s = sets(n = 3, v = x, a = Interval(0, 1), v2 = y, b = Interval(0, x), v3 = z, c = Interval(0, x*y))
-i = f.integral(s)
-print(i)
 
-#F = vector(n = 2, f = (f1, f2))
 
-#F.prnt()
 
 
