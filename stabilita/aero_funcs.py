@@ -19,7 +19,7 @@ def checkRe(Red, U, L, nu):
             Ln = Red*nu/U
             return Re(U, Ln, nu), U, Ln, nu
         elif choice == '3':
-            nuN = U*L/Re
+            nuN = U*L/Red
             return Re(U, L, nuN), U, L, nuN
         elif choice == '4':
             return Red, U, L, nu
