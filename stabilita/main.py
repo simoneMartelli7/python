@@ -1,20 +1,21 @@
-from math import pi, exp
 import csv
 import numpy as np
 from aero_funcs import checkRe
-from anim_funcs import create_gif  # , animate, counter
+import matplotlib.pyplot as plt
+from matplotlib import animation
 
-# define problem dimensions, these need to be in the SI
-L = 0.050  # semi-hegth
-alpha = 1  # wavenumber
-lam = 2 * pi * L  # wavelength
+
+# define problem parameters, these need to be in the SI
+L = 0.050  # semi-height
+alpha = 1  # wave-number
+lam = 2 * np.pi * L  # wavelength
 Red = 10000  # design Reynolds
 nu = 5 * 10 ** (-6)  # viscosity
 U = 0.17  # velocity
 
 # the function checkRe is defined in the aero file, the arguments need to be strictly in this order
-Re, U, L, nu = checkRe(Red, U, 2 * L, nu)
-L = L / 2
+# Re, U, L, nu = checkRe(Red, U, 2 * L, nu)
+# L = L / 2
 
 cr = []
 ci = []
@@ -27,25 +28,58 @@ with open('mat.csv', ) as f:
 
 # now we create two arrays, one for time and one for space, both of length k
 k = 1001
-t = np.linspace(0, 12 * pi, k).astype('complex')
-x = np.linspace(0, 30 * L, k).astype('complex')
+max_X = 30*L  # how much of the pipe we want to visualize
+t_real = np.linspace(0, 12 * np.pi, k)
+t = t_real.astype('complex')
+x = np.linspace(0, max_X, k).astype('complex')
 
 # now we should evaluate the solution for each eigenvalue
-# the solution is exp(i*alpha*t)*exp(i*alpha*cr)*exp(alpha*ci)
-
-solt = np.empty_like(t)
-solx = np.empty_like(t)
-# how many modes would you like to evaluate?
-modes = 10
-
+# the solution is exp(i*alpha*x)*exp(i*t*cr)*exp(t*ci)
 im = 1j  # defines the imaginary unit because python is dumb sometimes
 
-# fixes a mode, then a position in space, then cycles through time, then a second position is fixed and so on un until
-# the end of the x vector, then switches to the next mode
-# testing with a single mode
-o = 2
-for n in range(k):
-    for m in range(k):
-        solx[m] = exp(alpha * x[n] * im) * exp(t[m] * cr[o] * im) * exp(t[m] * ci[o])
+o = 9
 
-create_gif(x, solx)
+# sol = np.exp(im*alpha*x)*np.exp(im*t*cr[o])*np.exp(t*ci[o])
+
+
+# these are needed purely for aesthetic reasons, to determine the y-axis
+# max_Y = max(sol)
+# min_Y = min(sol)
+
+# dataSet = np.array([x, sol])
+
+
+# def anim_func(num):
+#     # deletes previous images
+#     ax.clear()
+#     # plots the i-esim point
+#     ax.plot(dataSet[0, :num+1], dataSet[1, :num+1], c='blue')
+#     # set superior and inferior bounds
+#     ax.set_xlim(0, max_X)
+#     ax.set_ylim(min_Y, max_Y)
+
+#     # Adding Figure Labels
+#     ax.set_title('Waves \nTime = ' + str(np.round(t_real[num],
+#                                                   decimals=2)) + ' sec')
+#     ax.set_xlabel('x')
+#     ax.set_ylabel('amplitude')
+
+
+# fig = plt.figure()
+# ax = plt.axes()
+# line_ani = animation.FuncAnimation(fig, anim_func, interval=1, frames=k)
+# plt.show()
+
+# generates a matrix in which each row is a solution with a different mode
+sol = np.empty([len(cr), k]).astype('complex')
+for i in range(len(cr)):
+    sol[i, :] = np.genfromtxt(f'sol/sol{i}.csv', delimiter=',', dtype=str)
+    sol[i, :] = np.complex_(sol[i, :])
+
+print(type(sol), len(sol))
+
+import time
+
+for i in range(k):
+    print(sol[1, i])
+    time.sleep(0.5)
