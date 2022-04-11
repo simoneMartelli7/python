@@ -1,9 +1,12 @@
-### in this file various aerodynamic functions will be defined as I need'em
+# in this file various aerodynamic functions will be defined as I need'em
 
-#evaluates the Reynolds number
+
+# evaluates the Reynolds number
 def Re(U, L, nu):
     return U*L/nu
-#checks the system Re against a design one and proposes new values
+
+
+# checks the system Re against a design one and proposes new values
 def checkRe(Red, U, L, nu):
     options = ("1. Velocity", "2. Length", "3. Viscosity", "4. I'd like to use this Reynolds anyway")
     if Red != U*L/nu:

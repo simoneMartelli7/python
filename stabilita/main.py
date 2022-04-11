@@ -28,8 +28,8 @@ with open('mat.csv', ) as f:
 
 # now we create two arrays, one for time and one for space, both of length k
 k = 1001
-max_X = 30*L  # how much of the pipe we want to visualize
-t_real = np.linspace(0, 12 * np.pi, k)
+max_X = 50*L  # how much of the pipe we want to visualize
+t_real = np.linspace(0, 5 * np.pi, k)
 t = t_real.astype('complex')
 x = np.linspace(0, max_X, k).astype('complex')
 
@@ -38,7 +38,7 @@ x = np.linspace(0, max_X, k).astype('complex')
 sol = np.empty([len(cr), k]).astype('complex')
 
 for i in range(len(cr)):
-    sol[i, :] = np.genfromtxt(f'sol/sol{i}.csv', delimiter=',', dtype=str)
+    sol[i, :] = np.genfromtxt(f'sol/sol{i}.csv', delimiter=',', dtype=str).astype('complex')
     sol[i, :] = np.complex_(sol[i, :])
 
 
@@ -46,26 +46,40 @@ for i in range(len(cr)):
 max_Y = sol.max()
 min_Y = sol.min()
 
-dataSet = np.empty([len(cr)+1, k])
-for i in range(len(cr)+1):
-    if i == 0:
-        dataSet[i, :] = x
-    else:
-        dataSet[i, :] = sol[i-1, :]
+# saves all the solutions and the x vector in one matrix: row 0 is the x coordinate, row 1 contains the solution number
+# 0 and so on until the last solution
+# dataSet = np.empty([len(cr)+1, k]).astype('complex')
+# for i in range(len(cr)):
+#     if i == 0:
+#         dataSet[i, :] = x
+#     else:
+#         dataSet[i, :] = sol[i-1, :]
 
 # number of modes to represent - 1
-o = 1  # NOTE: these must be consecutive ones
+o = 7  # NOTE: these must be consecutive ones
 
+sol_sum = np.empty_like(t)
+for i in range(k):
+    for j in range(len(cr)-1):
+        sol_sum[i] = sol_sum[i] + sol[j, i]
 
+dataSet = np.array([x, sol_sum])
+# # TESTING ONLY
+# sol1 = sol[9, :].astype('complex')
+# dataSet = np.array(x, sol1).astype('complex')
+# # END OF TEST
+
+dataSet
+# needed in animation.FuncAnimation()
 def anim_func(num):
     # deletes previous images
     # ax.clear()
     # plots the i-esim point
-    for i in range(1):
-        ax.plot(dataSet[0, :num+1], dataSet[i+1, :num+1])  # , c='blue')
+    # for i in range(o):
+    ax.plot(dataSet[0, :num+1], dataSet[1, :num+1])  # , c='blue')
     # set superior and inferior bounds
     ax.set_xlim(0, max_X)
-    ax.set_ylim(min_Y, max_Y)
+    ax.set_ylim(min_Y*10, max_Y*25)
 
     # Adding Figure Labels
     ax.set_title('Waves \nTime = ' + str(np.round(t_real[num],
@@ -76,13 +90,7 @@ def anim_func(num):
 
 fig = plt.figure()
 ax = plt.axes()
-line_ani = animation.FuncAnimation(fig, anim_func, interval=0.1, frames=int(k/10))
+line_ani = animation.FuncAnimation(fig, anim_func, interval=0.0001, frames=k)
 plt.show()
-
-# # generates a matrix in which each row is a solution with a different mode
-# sol = np.empty([len(cr), k]).astype('complex')
-# for i in range(len(cr)):
-#     sol[i, :] = np.genfromtxt(f'sol/sol{i}.csv', delimiter=',', dtype=str)
-#     sol[i, :] = np.complex_(sol[i, :])
-
-# print(type(sol), len(sol))
+myWriter = animation.FFMpegWriter(fps=60)
+line_ani.save('test.mp4', writer=myWriter)
